@@ -1,0 +1,33 @@
+services:
+  frontend:
+    image: nhkyaw/visit-record-app:frontend-${ENV_BRANCH}
+    container_name: frontend-app
+    ports:
+      - "3000:80"
+    env_file:
+      - .env.docker
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-db
+    env_file:
+      - .env.docker
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    image: nhkyaw/visit-record-app:backend-${ENV_BRANCH}
+    container_name: backend-app
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.docker
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
