@@ -7,5 +7,5 @@ pool:
     - agent.name -equals nhk-VMware-Virtual-Platform
 
 steps:
-  - script: echo "Running on self-hosted agent" >> /home/azureuser/agent.log
+  - script: echo "Running on self-hosted agent" >> /home/nhk/Desktop/agent.log
     displayName: 'Hello World'
