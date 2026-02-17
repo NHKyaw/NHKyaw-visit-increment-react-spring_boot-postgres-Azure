@@ -1,168 +1,131 @@
-resource "aws_vpc" "visit_record_vpc" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-  instance_tenancy     = "default"
-  tags = {
-    Name        = "visit-record-vpc-${var.environment}"
-    Environment = var.environment
-  }
-}
-
-resource "aws_internet_gateway" "visit_record_gw" {
-  vpc_id = aws_vpc.visit_record_vpc.id
-
-  tags = {
-    Name        = "visit-record-igw-${var.environment}"
-    Environment = var.environment
-  }
-}
-
-resource "aws_subnet" "visit_record_subnet" {
-  vpc_id                  = aws_vpc.visit_record_vpc.id
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
-  tags = {
-    Name        = "visit-record-subnet-${var.environment}"
-    Environment = var.environment
-  }
-}
-
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.visit_record_vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.visit_record_gw.id
-  }
-
-  tags = {
-    Name        = "visit-record-public-rt-${var.environment}"
-    Environment = var.environment
-  }
-}
-resource "aws_route_table_association" "public_rt_association" {
-  subnet_id      = aws_subnet.visit_record_subnet.id
-  route_table_id = aws_route_table.public_rt.id
-}
-
-resource "aws_security_group" "visit_record_sg" {
-  name   = "visit-record-sg-${var.environment}"
-  vpc_id = aws_vpc.visit_record_vpc.id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # SSH
-  }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags = {
-    Name        = "visit-record-sg-${var.environment}"
-    Environment = var.environment
-  }
+data "azurerm_resource_group" "rg" {
+  name = var.resource_group_name
 }
 
 
 locals {
-  instance_type_map = {
-    dev  = "t2.micro"
-    uat  = "t2.small"
-    prod = "t3.medium"
-  }
-
-  instance_type = local.instance_type_map[var.environment]
+  project_prefix = "${var.environment}-az-visit-increment"
 }
 
-resource "aws_instance" "visit_record_instance" {
-  ami           = var.ami_id
-  instance_type = local.instance_type
-  key_name      = var.visit_increment_key_name
-  user_data_replace_on_change = true
-
-
-  network_interface {
-    network_interface_id = aws_network_interface.visit_record_eni.id
-    device_index         = 0
-  }
-
-  user_data = file("userdata.sh")
-
-  tags = {
-    Name = "visit-record-${var.environment}"
-  }
+resource "azurerm_virtual_network" "az_visit_increment_vnet" {
+  name                = "${local.project_prefix}-vnet"
+  location            = data.azurerm_resource_group.rg.location
+  resource_group_name = data.azurerm_resource_group.rg.name
+  address_space       = [var.vm-net-cidr]
 }
 
 
-resource "aws_network_interface" "visit_record_eni" {
-  subnet_id       = aws_subnet.visit_record_subnet.id
-  security_groups = [aws_security_group.visit_record_sg.id]
+resource "azurerm_subnet" "az_visit_increment_subnet" {
+  name                 = "${local.project_prefix}-subnet"
+  resource_group_name  = data.azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.az_visit_increment_vnet.name
+  address_prefixes     = [var.cidr-env]
+}
 
-  tags = {
-    Name        = "visit-record-eni-${var.environment}"
-    Environment = var.environment
+resource "azurerm_public_ip" "az_visit_increment_public_ip" {
+  name                = "${local.project_prefix}-public-ip"
+  resource_group_name = data.azurerm_resource_group.rg.name
+  location            = data.azurerm_resource_group.rg.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_network_security_group" "az_visit_increment_nsg" {
+  name                = "${local.project_prefix}-nsg"
+  location            = data.azurerm_resource_group.rg.location
+  resource_group_name = data.azurerm_resource_group.rg.name
+
+  security_rule {
+    name                       = "test123"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
   }
 }
 
+resource "azurerm_network_interface" "az_visit_increment_nic" {
+  name                = "${local.project_prefix}-nic"
+  location            = data.azurerm_resource_group.rg.location
+  resource_group_name = data.azurerm_resource_group.rg.name
 
-resource "aws_eip" "visit_record_eip" {
-  domain = "vpc"
-  tags = {
-    Name        = "visit-record-eip-${var.environment}"
-    Environment = var.environment
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.az_visit_increment_subnet.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.az_visit_increment_public_ip.id
   }
 }
 
+resource "azurerm_network_interface_security_group_association" "nsg_assoc" {
+  network_interface_id      = azurerm_network_interface.az_visit_increment_nic.id
+  network_security_group_id = azurerm_network_security_group.az_visit_increment_nsg.id
+}
 
-resource "aws_eip_association" "eip_assoc" {
-  network_interface_id = aws_network_interface.visit_record_eni.id
-  allocation_id        = aws_eip.visit_record_eip.id
-  depends_on = [
-    aws_instance.visit_record_instance
+resource "azurerm_linux_virtual_machine" "vm" {
+  name                = "${local.project_prefix}-vm"
+  location            = data.azurerm_resource_group.rg.location
+  resource_group_name = data.azurerm_resource_group.rg.name
+  size                = "Standard_D2s_v3"
+  admin_username      = var.vm_admin_username
+
+  network_interface_ids = [
+    azurerm_network_interface.az_visit_increment_nic.id
   ]
+
+  admin_ssh_key {
+    username   = var.vm_admin_username
+    public_key = var.ssh_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_virtual_machine_extension" "docker" {
+  name                 = "${local.project_prefix}-docker-extension"
+  virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
+
+  settings = <<SETTINGS
+    {
+      "commandToExecute": "bash install.sh" 
+    }
+  SETTINGS
+
+  protected_settings = <<PROTECTED_SETTINGS
+    {
+      "fileUris": ["https://raw.githubusercontent.com/docker/docker-install/master/install.sh"]
+    }
+  PROTECTED_SETTINGS
+
+  timeouts {
+    create = "30m"
+  }
 }
 
 terraform {
-  backend "s3" {
-    bucket  = "visit-record-terraform-state"
-    key     = "env/${var.environment}/terraform.tfstate"
-    region  = "ap-southeast-1"
-    encrypt = true
+  backend "azurerm" {
+    resource_group_name  = "th-lab_group"
+    storage_account_name = "nhkstgacc"
+    container_name       = "tfstate"
+    key                  = "env/${var.environment}/terraform.tfstate"
   }
 }
+
+
+

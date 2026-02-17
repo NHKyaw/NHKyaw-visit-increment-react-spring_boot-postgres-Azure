@@ -1,7 +1,20 @@
-environment              = "uat"
-ami_id                   = "ami-08d59269edddde222"
-visit_increment_key_name = "visit_increment"
-vpc_cidr                 = "10.1.0.0/16"
-public_subnet_cidr       = "10.1.1.0/24"
-ssh_cidr                 = ["0.0.0.0/0"]
-instance_type            = "t2.small"
+# environment              = "uat"
+# ami_id                   = "ami-08d59269edddde222"
+# visit_increment_key_name = "visit_increment"
+# vpc_cidr                 = "10.1.0.0/16"
+# public_subnet_cidr       = "10.1.1.0/24"
+# ssh_cidr                 = ["0.0.0.0/0"]
+# instance_type            = "t2.small"
+
+cidr-env          = "10.0.2.0/24"
+environment       = "uat"
+vm_size           = "Standard_D2s_v3"
+instance_count    = 2
+enable_monitoring = true
+
+tags = {
+  Environment = "uat"
+  ManagedBy   = "terraform"
+  Owner       = "team-qa"
+  CostCenter  = "12345"
+}
