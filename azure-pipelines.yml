@@ -3,6 +3,8 @@ trigger:
 
 pool:
   name: 'Self-Hosted'
+  demands:
+    - agent.name -equals nhk-VMware-Virtual-Platform
 
 steps:
   - script: echo "Running on self-hosted agent" >> /home/azureuser/agent.log
