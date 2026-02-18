@@ -74,3 +74,10 @@ jobs:
         workingDirectory: $(System.DefaultWorkingDirectory)/backend/
         displayName: 'Run Backend Tests'  
 
+
+  - job: Build
+    dependsOn: Test
+
+    steps:
+      - script: echo "Building the application..."
+        displayName: 'Build Application'
