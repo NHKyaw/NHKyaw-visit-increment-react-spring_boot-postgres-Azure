@@ -26,15 +26,9 @@ jobs:
           pwd
           ls -al 
         workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
-        displayName: 'Before Frontend Dir'
+        displayName: 'Before Frontend Dir' 
 
       - script: |
-          pwd
-          ls -al 
-        workingDirectory: $(System.DefaultWorkingDirectory)/backend/
-        displayName: 'After Frontend Dir'
-
-      - script: |
-          pwd
-          ls -al
-        displayName: 'After Backend Dir'
+          npm install
+        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
+        displayName: 'Install Frontend dependencies'
