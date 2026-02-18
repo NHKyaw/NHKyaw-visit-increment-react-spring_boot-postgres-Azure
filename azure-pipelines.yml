@@ -8,6 +8,17 @@ pool:
 
 jobs:
   - job: Test
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: my_database
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 12345678
+        ports:
+          - 5432:5432
+
     steps:
       # Install Node.js
       - task: UseNode@1
@@ -17,26 +28,36 @@ jobs:
 
 
       - script: |
-          docker --version
-        displayName: 'Check Docker Version'
-          # npm install
-      #     ls -al node_modules
-      #   workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
-      #   displayName: 'Install Frontend dependencies'
+          npm install
+          ls -al node_modules
+        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
+        displayName: 'Install Frontend dependencies'
 
 
-      # - script: |
-      #     npm test -- --watchAll=false
-      #   workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
-      #   displayName: 'Run Frontend Tests'
+      - script: |
+          npm test -- --watchAll=false
+        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
+        displayName: 'Run Frontend Tests'
 
-      # # Install Java
-      # - task: JavaToolInstaller@0
-      #   inputs:
-      #     versionSpec: '21'
-      #   displayName: 'Install Java 21'
 
-      # - script: |
-      #     ./mvnw test
-      #   workingDirectory: $(System.DefaultWorkingDirectory)/backend/
-      #   displayName: 'Run Backend Tests'  
+
+      # Install Java
+      - task: JavaToolInstaller@0
+        inputs:
+          versionSpec: '21'
+          jdkArchitectureOption: 'x64'
+        displayName: 'Install Java 21'
+
+      - script: |
+          until pg_isready -h localhost -p 5432; do
+            echo "Waiting for postgres..."
+            sleep 2
+          done
+          echo "Postgres is ready!"
+        displayName: 'Wait for Postgres'
+
+      - script: |
+          ./mvnw test
+        workingDirectory: $(System.DefaultWorkingDirectory)/backend/
+        displayName: 'Run Backend Tests'  
+
