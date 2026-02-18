@@ -21,7 +21,7 @@ jobs:
 
     steps:
       # Install Node.js
-      - task: UseNode@0
+      - task: UseNode@1
         inputs:
           version: "20.19.6"
         displayName: 'Install Node.js'
