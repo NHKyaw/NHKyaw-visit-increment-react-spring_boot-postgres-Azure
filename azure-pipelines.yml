@@ -6,6 +6,23 @@ pool:
   demands:
     - agent.name -equals nhk-VMware-Virtual-Platform
 
-steps:
-  - script: echo "Running on self-hosted agent" >> /home/nhk/Desktop/agent.log
-    displayName: 'Hello World'
+Jobs:
+- job: Test
+  steps:
+    # Install Node.js
+    - task: UseNode@1
+      inputs:
+        version: $(nodeVersion)
+      displayName: 'Install Node.js'
+
+    # Install dependencies
+    - script: |
+      workingDirectory: $(System.DefaultWorkingDirectory)
+        npm install
+      displayName: 'Install dependencies'
+
+    # Run tests
+    - script: |
+        pwd
+        npm test
+      displayName: 'Run tests'
