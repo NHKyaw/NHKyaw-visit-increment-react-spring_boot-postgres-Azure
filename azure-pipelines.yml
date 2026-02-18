@@ -10,25 +10,20 @@ jobs:
   - job: Test
     steps:
       # Install Node.js
-      # - task: UseNode@1
-      #   inputs:
-      #     version: $(nodeVersion)
-      #   displayName: 'Install Node.js'
+      - task: UseNode@1
+        inputs:
+          version: $(nodeVersion)
+        displayName: 'Install Node.js'
 
-      # Install dependencies
-      # - script: |
-      #     npm install
-      #   workingDirectory: $(System.DefaultWorkingDirectory)
-      #   displayName: 'Install dependencies'
-
-      # Run tests
-      - script: |
-          pwd
-          ls -al 
-        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
-        displayName: 'Before Frontend Dir' 
 
       - script: |
           npm install
+          ls -al node_modules
         workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
         displayName: 'Install Frontend dependencies'
+
+
+      - script: |
+          npm test -- --watchAll=false
+        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
+        displayName: 'Run Frontend Tests'
