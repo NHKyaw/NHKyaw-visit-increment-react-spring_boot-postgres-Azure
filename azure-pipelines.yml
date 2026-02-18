@@ -27,3 +27,14 @@ jobs:
           npm test -- --watchAll=false
         workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
         displayName: 'Run Frontend Tests'
+
+      # Install Java
+      - task: JavaToolInstaller@0
+        inputs:
+          versionSpec: '21'
+        displayName: 'Install Java 21'
+
+      - script: |
+          ./mvnw test
+        workingDirectory: $(System.DefaultWorkingDirectory)/backend/
+        displayName: 'Run Backend Tests'  
