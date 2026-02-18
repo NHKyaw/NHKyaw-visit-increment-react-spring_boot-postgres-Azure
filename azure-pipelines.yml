@@ -26,5 +26,15 @@ jobs:
           pwd
           ls -al 
         workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
+        displayName: 'Before Frontend Dir'
+
+      - script: |
+          pwd
+          ls -al 
+        workingDirectory: $(System.DefaultWorkingDirectory)/backend/
+        displayName: 'After Frontend Dir'
+
+      - script: |
+          pwd
           ls -al
-        displayName: 'Run tests'
+        displayName: 'After Backend Dir'
