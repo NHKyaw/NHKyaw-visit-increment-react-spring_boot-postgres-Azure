@@ -61,6 +61,14 @@ jobs:
           echo "Postgres is ready!"
         displayName: 'Wait for Postgres'
 
+      - task: Cache@2
+        inputs:
+          key: 'maven | "$(Agent.OS)" | backend/pom.xml'
+          restoreKeys: |
+            maven | "$(Agent.OS)"
+          path: $(HOME)/.m2/repository
+        displayName: 'Cache Maven dependencies'
+
       - script: |
           ./mvnw test
         workingDirectory: $(System.DefaultWorkingDirectory)/backend/
