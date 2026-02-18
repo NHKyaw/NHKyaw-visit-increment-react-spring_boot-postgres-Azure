@@ -25,5 +25,6 @@ jobs:
       - script: |
           pwd
           ls -al 
-        # workingDirectory: $(System.DefaultWorkingDirectory)
+        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
+          ls -al
         displayName: 'Run tests'
