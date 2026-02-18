@@ -26,6 +26,13 @@ jobs:
           version: "20.19.6"
         displayName: 'Install Node.js'
 
+      - task: Cache@2
+        inputs:
+          key: 'npm | "$(Agent.OS)" | frontend/package-lock.json'
+          restoreKeys: |
+            npm | "$(Agent.OS)"
+          path: $(System.DefaultWorkingDirectory)/frontend/node_modules
+        displayName: 'Cache npm dependencies'
 
       - script: |
           npm install
@@ -46,6 +53,7 @@ jobs:
         inputs:
           versionSpec: '21'
           jdkArchitectureOption: 'x64'
+          jdkSourceOption: 'AzureJDK'
         displayName: 'Install Java 21'
 
       - script: |
