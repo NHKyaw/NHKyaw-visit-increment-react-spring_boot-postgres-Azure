@@ -26,6 +26,12 @@ jobs:
           version: "20.19.6"
         displayName: 'Install Node.js'
 
+      - script: |
+          npm install
+          ls -al node_modules
+        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
+        displayName: 'Install Frontend dependencies'
+
       - task: Cache@2
         inputs:
           key: 'npm | "$(Agent.OS)" | frontend/package-lock.json'
@@ -35,24 +41,17 @@ jobs:
         displayName: 'Cache npm dependencies'
 
       - script: |
-          npm install
-          ls -al node_modules
-        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
-        displayName: 'Install Frontend dependencies'
-
-
-      - script: |
           npm test -- --watchAll=false
         workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
         displayName: 'Run Frontend Tests'
 
-      # Install Java
-      - task: JavaToolInstaller@0
-        inputs:
-          versionSpec: '21'
-          jdkArchitectureOption: 'x64'
-          jdkSourceOption: 'PreInstalled'
-        displayName: 'Install Java 21'
+      # # Install Java
+      # - task: JavaToolInstaller@0
+      #   inputs:
+      #     versionSpec: '21'
+      #     jdkArchitectureOption: 'x64'
+      #     jdkSourceOption: 'AzureJDK'
+      #   displayName: 'Install Java 21'
 
       - script: |
           until pg_isready -h localhost -p 5432; do
