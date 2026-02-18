@@ -9,17 +9,17 @@ pool:
 Jobs:
 - job: Test
   steps:
-    # Install Node.js
-    - task: UseNode@1
-      inputs:
-        version: $(nodeVersion)
-      displayName: 'Install Node.js'
+    # # Install Node.js
+    # - task: UseNode@1
+    #   inputs:
+    #     version: $(nodeVersion)
+    #   displayName: 'Install Node.js'
 
-    # Install dependencies
-    - script: |
-      workingDirectory: $(System.DefaultWorkingDirectory)
-        npm install
-      displayName: 'Install dependencies'
+    # # Install dependencies
+    # - script: |
+    #   workingDirectory: $(System.DefaultWorkingDirectory)
+    #     npm install
+    #   displayName: 'Install dependencies'
 
     # Run tests
     - script: |
