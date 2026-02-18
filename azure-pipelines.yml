@@ -21,16 +21,10 @@ jobs:
 
     steps:
       # Install Node.js
-      - task: UseNode@1
+      - task: UseNode@0
         inputs:
           version: "20.19.6"
         displayName: 'Install Node.js'
-
-      - script: |
-          npm install
-          ls -al node_modules
-        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
-        displayName: 'Install Frontend dependencies'
 
       - task: Cache@2
         inputs:
@@ -39,6 +33,12 @@ jobs:
             npm | "$(Agent.OS)"
           path: $(System.DefaultWorkingDirectory)/frontend/node_modules
         displayName: 'Cache npm dependencies'
+
+      - script: |
+          npm install
+          ls -al node_modules
+        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
+        displayName: 'Install Frontend dependencies'
 
       - script: |
           npm test -- --watchAll=false
