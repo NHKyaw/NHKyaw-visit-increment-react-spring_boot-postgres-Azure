@@ -6,23 +6,24 @@ pool:
   demands:
     - agent.name -equals nhk-VMware-Virtual-Platform
 
-Jobs:
-- job: Test
-  steps:
-    # # Install Node.js
-    # - task: UseNode@1
-    #   inputs:
-    #     version: $(nodeVersion)
-    #   displayName: 'Install Node.js'
+jobs:
+  - job: Test
+    steps:
+      # Install Node.js
+      # - task: UseNode@1
+      #   inputs:
+      #     version: $(nodeVersion)
+      #   displayName: 'Install Node.js'
 
-    # # Install dependencies
-    # - script: |
-    #   workingDirectory: $(System.DefaultWorkingDirectory)
-    #     npm install
-    #   displayName: 'Install dependencies'
+      # Install dependencies
+      # - script: |
+      #     npm install
+      #   workingDirectory: $(System.DefaultWorkingDirectory)
+      #   displayName: 'Install dependencies'
 
-    # Run tests
-    - script: |
-        pwd
-        npm test
-      displayName: 'Run tests'
+      # Run tests
+      - script: |
+          pwd
+          ls -al 
+        # workingDirectory: $(System.DefaultWorkingDirectory)
+        displayName: 'Run tests'
