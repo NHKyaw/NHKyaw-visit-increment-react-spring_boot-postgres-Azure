@@ -18,6 +18,7 @@ jobs:
           POSTGRES_PASSWORD: 12345678
         ports:
           - 5432:5432
+        endpoint: 'Docker_Login'
 
     steps:
       # Install Node.js
