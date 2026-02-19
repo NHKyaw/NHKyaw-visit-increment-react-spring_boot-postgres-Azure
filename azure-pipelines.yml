@@ -93,7 +93,7 @@ jobs:
         containerRegistry: Docker_Login
         repository: nhk/visit-record-app
         dockerfile: frontend/Dockerfile
-        buildContext: .
+        buildContext: frontend/
         tags: testing-frontend
 
     - task: Docker@2
@@ -111,7 +111,7 @@ jobs:
         containerRegistry: Docker_Login
         repository: nhk/visit-record-app
         dockerfile: backend/Dockerfile
-        buildContext: .
+        buildContext: backend/
         tags: testing-backend
 
     - task: Docker@2
