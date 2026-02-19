@@ -183,18 +183,22 @@ jobs:
       displayName: 'Get VM Public IP'
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
 
+    - task: DownloadSecureFile@1
+      displayName: 'Download SSH Key'
+      name: sshKey
+      inputs:
+        secureFile: 'nhkyaw-ssh-key.pem'              # upload your .pem file to Library → Secure Files
+
     - script: |
-        mkdir -p ~/.ssh
-        echo "$(nhkyaw-ssh-key)" > ~/.ssh/vm.pem
-        chmod 600 ~/.ssh/vm.pem
-      displayName: 'Prepare SSH Key'
+        chmod 600 $(sshKey.secureFilePath)
+      displayName: 'Set SSH Key Permission'
 
     - script: |
         echo "Waiting for SSH on $(VM_IP)..."
         for i in {1..30}; do
           if ssh -o StrictHostKeyChecking=no \
                  -o ConnectTimeout=5 \
-                 -i ~/.ssh/vm.pem \
+                 -i $(sshKey.secureFilePath) \
                  ubuntu@$(VM_IP) "echo SSH ready"; then
             echo "SSH is ready!"
             exit 0
@@ -208,14 +212,14 @@ jobs:
 
     - script: |
         scp -o StrictHostKeyChecking=no \
-            -i ~/.ssh/vm.pem \
+            -i $(sshKey.secureFilePath) \
             -r docker ubuntu@$(VM_IP):~/
       displayName: 'Copy Docker Directory to VM'
       workingDirectory: '$(System.DefaultWorkingDirectory)'
 
     - script: |                        
         ssh -o StrictHostKeyChecking=no \
-            -i ~/.ssh/vm.pem \
+            -i $(sshKey.secureFilePath) \
             ubuntu@$(VM_IP) "
               set -e
               export IMAGE_TAG=$(imageTag)
