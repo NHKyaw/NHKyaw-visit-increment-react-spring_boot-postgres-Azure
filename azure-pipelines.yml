@@ -199,7 +199,7 @@ jobs:
     - script: |
         ssh -o StrictHostKeyChecking=no \
             -i $(sshKey.secureFilePath) \
-            nhkyaw@$(VM_IP) "echo connected"
+            nhkyaw@$(VM_IP) "echo connected!"
       displayName: 'Test SSH Connection'
 
     - script: |
