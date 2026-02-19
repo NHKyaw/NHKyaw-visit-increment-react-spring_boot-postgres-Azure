@@ -175,7 +175,10 @@ jobs:
         command: 'apply'
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
         environmentServiceNameAzureRM: 'nhk_terraform_iam'
-        commandOptions: '-auto-approve -var-file="$(ENV).tfvars"'
+        commandOptions: >
+          -auto-approve
+          -var-file="$(ENV).tfvars"
+          -var="ssh_public_key=$(nhkyaw-ssh-key)"
 
     - script: |
         VM_IP=$(terraform output -raw vm_public_ip)

@@ -10,7 +10,6 @@ environment       = "prod"
 vm_size           = "Standard_D4s_v3"
 instance_count    = 3
 enable_monitoring = true
-
 tags = {
   Environment = "prod"
   ManagedBy   = "terraform"

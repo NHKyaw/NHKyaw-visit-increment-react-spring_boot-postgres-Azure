@@ -50,7 +50,7 @@ variable "vm_admin_username" {
 
 variable "ssh_public_key" {
   description = "SSH public key"
-  default = "nhkyaw-ssh-key.pub"
+  type        = string
 }
 
 variable "vm-net-cidr" {
