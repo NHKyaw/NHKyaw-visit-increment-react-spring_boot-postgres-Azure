@@ -123,7 +123,6 @@ terraform {
     resource_group_name  = "th-lab_group"
     storage_account_name = "nhkstgacc"
     container_name       = "tfstate"
-    key                  = "env/${var.environment}/terraform.tfstate"
   }
 }
 
