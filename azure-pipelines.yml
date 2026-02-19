@@ -81,7 +81,14 @@ jobs:
 
     steps:
     - task: Docker@2
-      displayName: Login to ACR
+      displayName: Login to Docker Hub
       inputs:
         command: login
         containerRegistry: Docker_Login
+
+    - script: |
+        docker build -t nhk/visit-record-app:testing-frontend -f frontend/Dockerfile .
+        docker build -t nhk/visit-record-app:testing-backend -f backend/Dockerfile .
+        docker push nhk/visit-record-app:testing-frontend
+        docker push nhk/visit-record-app:testing-backend
+      displayName: 'Build and Push Docker Image'
