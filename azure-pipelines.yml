@@ -95,6 +95,7 @@ jobs:
         dockerfile: frontend/Dockerfile
         buildContext: frontend/
         tags: testing-frontend
+        endpoint: 'Docker_Login'
 
     - task: Docker@2
       displayName: 'Push Frontend Image'
@@ -103,6 +104,7 @@ jobs:
         containerRegistry: Docker_Login
         repository: nhk/visit-record-app
         tags: testing-frontend
+        endpoint: 'Docker_Login'
 
     - task: Docker@2
       displayName: 'Build Backend Image'
