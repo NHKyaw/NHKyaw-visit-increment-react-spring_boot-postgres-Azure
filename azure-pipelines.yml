@@ -128,11 +128,11 @@ jobs:
         tags: backend-$(imageTag)
 
 
-  # ── 3. Deploy ─────────────────────────────────────────
+  # ── 3. Deploy ─────────────────────────────────────────────────────────────
   - job: Deploy
     dependsOn: Build
 
-    variables:                                        
+    variables:                          # ✅ All variables merged into ONE block
       - name: ENV
         ${{ if or(eq(variables['Build.SourceBranchName'], 'main'), eq(variables['Build.SourceBranchName'], 'master')) }}:
           value: 'prod'
@@ -140,8 +140,6 @@ jobs:
           value: 'uat'
         ${{ else }}:
           value: 'dev'
-
-    variables:
       - name: imageTag
         ${{ if or(eq(variables['Build.SourceBranchName'], 'main'), eq(variables['Build.SourceBranchName'], 'master')) }}:
           value: 'prod'
@@ -149,11 +147,10 @@ jobs:
           value: 'uat'
         ${{ else }}:
           value: 'dev'
+      - name: DOCKER_REPO
+        value: 'nhkyaw/visit-record-app'
 
-    variables:
-      DOCKER_REPO: 'nhkyaw/visit-record-app'
-
-    steps:                                           
+    steps:                            
     - task: TerraformInstaller@1
       displayName: 'Install Terraform'
       inputs:
@@ -180,7 +177,6 @@ jobs:
         environmentServiceNameAzureRM: 'nhk_terraform_iam'
         commandOptions: '-auto-approve -var-file="$(ENV).tfvars"'
 
-    # ── Get VM IP from Terraform Output
     - script: |
         VM_IP=$(terraform output -raw vm_public_ip)
         echo "##vso[task.setvariable variable=VM_IP]$VM_IP"
@@ -193,7 +189,23 @@ jobs:
         chmod 600 ~/.ssh/vm.pem
       displayName: 'Prepare SSH Key'
 
-    # ── Copy Docker Directory to VM ───────────────────────────────────────────
+    - script: |
+        echo "Waiting for SSH on $(VM_IP)..."
+        for i in {1..30}; do
+          if ssh -o StrictHostKeyChecking=no \
+                 -o ConnectTimeout=5 \
+                 -i ~/.ssh/vm.pem \
+                 ubuntu@$(VM_IP) "echo SSH ready"; then
+            echo "SSH is ready!"
+            exit 0
+          fi
+          echo "Still booting... retry in 10s"
+          sleep 10
+        done
+        echo "ERROR: VM did not become ready in time"
+        exit 1
+      displayName: 'Wait for VM SSH'
+
     - script: |
         scp -o StrictHostKeyChecking=no \
             -i ~/.ssh/vm.pem \
@@ -201,16 +213,14 @@ jobs:
       displayName: 'Copy Docker Directory to VM'
       workingDirectory: '$(System.DefaultWorkingDirectory)'
 
-
-  # ── Deploy ────────────────────────────────────────────────────────────────
-  - script: |
-      ssh -o StrictHostKeyChecking=no \
-          -i ~/.ssh/vm.pem \
-          ubuntu@$(VM_IP) "
-            set -e
-            export IMAGE_TAG=$(imageTag)
-            export DOCKER_REPO=$(DOCKER_REPO)
-            sudo chmod +x /home/ubuntu/docker/deploy.sh
-            /home/ubuntu/docker/deploy.sh
-          "
-    displayName: 'Deploy to Azure VM'
+    - script: |                        
+        ssh -o StrictHostKeyChecking=no \
+            -i ~/.ssh/vm.pem \
+            ubuntu@$(VM_IP) "
+              set -e
+              export IMAGE_TAG=$(imageTag)
+              export DOCKER_REPO=$(DOCKER_REPO)
+              sudo chmod +x /home/ubuntu/docker/deploy.sh
+              /home/ubuntu/docker/deploy.sh
+            "
+      displayName: 'Deploy to Azure VM'
