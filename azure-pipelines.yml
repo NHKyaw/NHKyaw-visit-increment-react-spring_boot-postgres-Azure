@@ -216,6 +216,6 @@ jobs:
               export IMAGE_TAG=$(imageTag)
               export DOCKER_REPO=$(DOCKER_REPO)
               sudo chmod +x /home/nhkyaw/docker/deploy.sh
-              /home/nhkyaw/docker/deploy.sh
+              bash /home/nhkyaw/docker/deploy.sh
             "
       displayName: 'Deploy to Azure VM...'
