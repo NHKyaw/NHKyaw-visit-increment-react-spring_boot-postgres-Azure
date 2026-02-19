@@ -91,7 +91,7 @@ jobs:
       inputs:
         command: build
         containerRegistry: Docker_Login
-        repository: nhk/visit-record-app
+        repository: nhkyaw/visit-record-app
         dockerfile: frontend/Dockerfile
         buildContext: frontend/
         tags: testing-frontend
@@ -102,7 +102,7 @@ jobs:
       inputs:
         command: push
         containerRegistry: Docker_Login
-        repository: nhk/visit-record-app
+        repository: nhkyaw/visit-record-app
         tags: testing-frontend
         endpoint: 'Docker_Login'
 
@@ -111,7 +111,7 @@ jobs:
       inputs:
         command: build
         containerRegistry: Docker_Login
-        repository: nhk/visit-record-app
+        repository: nhkyaw/visit-record-app
         dockerfile: backend/Dockerfile
         buildContext: backend/
         tags: testing-backend
@@ -121,5 +121,5 @@ jobs:
       inputs:
         command: push
         containerRegistry: Docker_Login
-        repository: nhk/visit-record-app
+        repository: nhkyaw/visit-record-app
         tags: testing-backend
