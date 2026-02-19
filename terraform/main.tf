@@ -94,6 +94,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 }
 
+
 resource "azurerm_virtual_machine_extension" "docker" {
   name                 = "${local.project_prefix}-docker-extension"
   virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
@@ -103,20 +104,37 @@ resource "azurerm_virtual_machine_extension" "docker" {
 
   settings = <<SETTINGS
     {
-      "commandToExecute": "bash install.sh" 
+      "commandToExecute": "apt-get update && apt-get install -y ca-certificates curl gnupg && install -m 0755 -d /etc/apt/keyrings && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && chmod a+r /etc/apt/keyrings/docker.gpg && echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable\" | tee /etc/apt/sources.list.d/docker.list > /dev/null && apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin && usermod -aG docker nhkyaw"
     }
   SETTINGS
-
-  protected_settings = <<PROTECTED_SETTINGS
-    {
-      "fileUris": ["https://raw.githubusercontent.com/docker/docker-install/master/install.sh"]
-    }
-  PROTECTED_SETTINGS
 
   timeouts {
     create = "30m"
   }
 }
+# resource "azurerm_virtual_machine_extension" "docker" {
+#   name                 = "${local.project_prefix}-docker-extension"
+#   virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
+#   publisher            = "Microsoft.Azure.Extensions"
+#   type                 = "CustomScript"
+#   type_handler_version = "2.0"
+
+#   settings = <<SETTINGS
+#     {
+#       "commandToExecute": "bash install.sh" 
+#     }
+#   SETTINGS
+
+#   protected_settings = <<PROTECTED_SETTINGS
+#     {
+#       "fileUris": ["https://raw.githubusercontent.com/docker/docker-install/master/install.sh"]
+#     }
+#   PROTECTED_SETTINGS
+
+#   timeouts {
+#     create = "30m"
+#   }
+# }
 
 terraform {
   backend "azurerm" {
