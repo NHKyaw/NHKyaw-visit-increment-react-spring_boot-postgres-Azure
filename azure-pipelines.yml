@@ -1,5 +1,8 @@
 trigger:
   - main
+  - master
+  - uat       
+  - dev
 
 pool:
   name: 'Self-Hosted'
@@ -7,77 +10,89 @@ pool:
     - agent.name -equals nhk-VMware-Virtual-Platform
 
 jobs:
-  # - job: Test
+  - job: Test
 
-  #   services:
-  #     postgres:
-  #       image: postgres:15
-  #       env:
-  #         POSTGRES_DB: my_database
-  #         POSTGRES_USER: postgres
-  #         POSTGRES_PASSWORD: 12345678
-  #       ports:
-  #         - 5432:5432
-  #       endpoint: 'Docker_Login'
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: my_database
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 12345678
+        ports:
+          - 5432:5432
+        endpoint: 'Docker_Login'
 
-  #   steps:
-  #     # Install Node.js
-  #     - task: UseNode@1
-  #       inputs:
-  #         version: "20.19.6"
-  #       displayName: 'Install Node.js'
+    steps:
+      # Install Node.js
+      - task: UseNode@1
+        inputs:
+          version: "20.19.6"
+        displayName: 'Install Node.js'
 
-  #     - task: Cache@2
-  #       inputs:
-  #         key: 'npm | "$(Agent.OS)" | frontend/package-lock.json'
-  #         restoreKeys: |
-  #           npm | "$(Agent.OS)"
-  #         path: $(System.DefaultWorkingDirectory)/frontend/node_modules
-  #       displayName: 'Cache npm dependencies'
+      - task: Cache@2
+        inputs:
+          key: 'npm | "$(Agent.OS)" | frontend/package-lock.json'
+          restoreKeys: |
+            npm | "$(Agent.OS)"
+          path: $(System.DefaultWorkingDirectory)/frontend/node_modules
+        displayName: 'Cache npm dependencies'
 
-  #     - script: |
-  #         npm install
-  #         ls -al node_modules
-  #       workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
-  #       displayName: 'Install Frontend dependencies'
+      - script: |
+          npm install
+          ls -al node_modules
+        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
+        displayName: 'Install Frontend dependencies'
 
-  #     - script: |
-  #         npm test -- --watchAll=false
-  #       workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
-  #       displayName: 'Run Frontend Tests'
+      - script: |
+          npm test -- --watchAll=false
+        workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
+        displayName: 'Run Frontend Tests'
 
-  #     # # Install Java
-  #     # - task: JavaToolInstaller@0
-  #     #   inputs:
-  #     #     versionSpec: '21'
-  #     #     jdkArchitectureOption: 'x64'
-  #     #     jdkSourceOption: 'AzureJDK'
-  #     #   displayName: 'Install Java 21'
+      # # Install Java
+      # - task: JavaToolInstaller@0
+      #   inputs:
+      #     versionSpec: '21'
+      #     jdkArchitectureOption: 'x64'
+      #     jdkSourceOption: 'AzureJDK'
+      #   displayName: 'Install Java 21'
 
-  #     - script: |
-  #         until pg_isready -h localhost -p 5432; do
-  #           echo "Waiting for postgres..."
-  #           sleep 2
-  #         done
-  #         echo "Postgres is ready!"
-  #       displayName: 'Wait for Postgres'
+      - script: |
+          until pg_isready -h localhost -p 5432; do
+            echo "Waiting for postgres..."
+            sleep 2
+          done
+          echo "Postgres is ready!"
+        displayName: 'Wait for Postgres'
 
-  #     - task: Cache@2
-  #       inputs:
-  #         key: 'maven | "$(Agent.OS)" | backend/pom.xml'
-  #         restoreKeys: |
-  #           maven | "$(Agent.OS)"
-  #         path: $(HOME)/.m2/repository
-  #       displayName: 'Cache Maven dependencies'
+      - task: Cache@2
+        inputs:
+          key: 'maven | "$(Agent.OS)" | backend/pom.xml'
+          restoreKeys: |
+            maven | "$(Agent.OS)"
+          path: $(HOME)/.m2/repository
+        displayName: 'Cache Maven dependencies'
 
-  #     - script: |
-  #         ./mvnw test
-  #       workingDirectory: $(System.DefaultWorkingDirectory)/backend/
-  #       displayName: 'Run Backend Tests'  
+      - script: |
+          ./mvnw test
+        workingDirectory: $(System.DefaultWorkingDirectory)/backend/
+        displayName: 'Run Backend Tests'  
 
 
   - job: Build
-    # dependsOn: Test
+    dependsOn: Test
+
+    ###'Set Image Tag'
+    variables:
+      - name: imageTag
+        ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+          value: 'prod'
+        ${{ elseif eq(variables['Build.SourceBranchName'], 'master') }}:
+          value: 'prod'
+        ${{ elseif eq(variables['Build.SourceBranchName'], 'uat') }}:
+          value: 'uat'
+        ${{ else }}:
+          value: 'dev'
 
     steps:
     - task: Docker@2
@@ -94,8 +109,7 @@ jobs:
         repository: nhkyaw/visit-record-app
         dockerfile: frontend/Dockerfile
         buildContext: frontend/
-        tags: testing-frontend
-        endpoint: 'Docker_Login'
+        tags: frontend-$(imageTag)
 
     - task: Docker@2
       displayName: 'Push Frontend Image'
@@ -103,8 +117,7 @@ jobs:
         command: push
         containerRegistry: Docker_Login
         repository: nhkyaw/visit-record-app
-        tags: testing-frontend
-        endpoint: 'Docker_Login'
+        tags: frontend-$(imageTag)
 
     - task: Docker@2
       displayName: 'Build Backend Image'
@@ -114,7 +127,7 @@ jobs:
         repository: nhkyaw/visit-record-app
         dockerfile: backend/Dockerfile
         buildContext: backend/
-        tags: testing-backend
+        tags: backend-$(imageTag)
 
     - task: Docker@2
       displayName: 'Push Backend Image'
@@ -122,4 +135,4 @@ jobs:
         command: push
         containerRegistry: Docker_Login
         repository: nhkyaw/visit-record-app
-        tags: testing-backend
+        tags: backend-$(imageTag)
