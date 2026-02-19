@@ -190,17 +190,13 @@ jobs:
         commandOptions: >
           -auto-approve
           -var-file="$(ENV).tfvars"
-          -var="ssh_public_key=$(PUBLIC_KEY)"
+          -var="ssh_public_key=$(SSH_PUBLIC_KEY)"    # ✅ matches the variable name set above
 
     - script: |
         VM_IP=$(terraform output -raw vm_public_ip)
         echo "##vso[task.setvariable variable=VM_IP]$VM_IP"
       displayName: 'Get VM Public IP'
       workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-
-    - script: |
-        chmod 600 $(sshKey.secureFilePath)
-      displayName: 'Set SSH Key Permission'
 
     - script: |
         ssh -o StrictHostKeyChecking=no \
