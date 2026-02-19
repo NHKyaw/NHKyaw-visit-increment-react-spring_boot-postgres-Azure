@@ -172,7 +172,7 @@ jobs:
       displayName: 'Download SSH Key'
       name: sshKey
       inputs:
-        secureFile: 'nhkyaw-ssh.key.pem.pub'              # upload your .pem file to Library → Secure Files
+        secureFile: 'nhkyaw-ssh-key'              # upload your .pem file to Library → Secure Files
 
     - task: TerraformTaskV4@4
       displayName: 'Terraform Apply'
@@ -184,7 +184,7 @@ jobs:
         commandOptions: >
           -auto-approve
           -var-file="$(ENV).tfvars"
-          -var="ssh_public_key=$(nhkyaw-ssh.key.pem.pub)"
+          -var="ssh_public_key=$(sshKey.secureFilePath)"
 
     - script: |
         VM_IP=$(terraform output -raw vm_public_ip)
