@@ -151,35 +151,35 @@ jobs:
           value: 'uat'
         ${{ else }}:
           value: 'dev'
-  - task: TerraformInstaller@1
-    displayName: 'Install Terraform'
-    inputs:
-      terraformVersion: 'latest'
+      - task: TerraformInstaller@1
+        displayName: 'Install Terraform'
+        inputs:
+          terraformVersion: 'latest'
 
-  - task: TerraformTaskV4@4
-    displayName: 'Terraform Init'
-    inputs:
-      provider: 'azurerm'
-      command: 'init'
-      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-      backendServiceArm: 'nhk_terraform_iam'
-      backendAzureRmResourceGroupName: 'th-lab_group'
-      backendAzureRmStorageAccountName: 'nhkstgacc'
-      backendAzureRmContainerName: 'tfstate'
-      backendAzureRmKey: 'env/$(ENV)/terraform.tfstate'
+      - task: TerraformTaskV4@4
+        displayName: 'Terraform Init'
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+          backendServiceArm: 'nhk_terraform_iam'
+          backendAzureRmResourceGroupName: 'th-lab_group'
+          backendAzureRmStorageAccountName: 'nhkstgacc'
+          backendAzureRmContainerName: 'tfstate'
+          backendAzureRmKey: 'env/$(ENV)/terraform.tfstate'
 
-  # Alternative way to run Terraform Init using script task
-  # - script: |
-  #     terraform init \
-  #       -backend-config="key=env/$(ENV)/terraform.tfstate"
-  #   displayName: 'Terraform Init'
-  #   workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+      # Alternative way to run Terraform Init using script task
+      # - script: |
+      #     terraform init \
+      #       -backend-config="key=env/$(ENV)/terraform.tfstate"
+      #   displayName: 'Terraform Init'
+      #   workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
 
-  - task: TerraformTaskV4@4
-    displayName: 'Terraform Apply'
-    inputs:
-      provider: 'azurerm'
-      command: 'apply'
-      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-      environmentServiceNameAzureRM: 'nhk_terraform_iam'
-      commandOptions: '-auto-approve -var-file="$(ENV).tfvars"'
+      - task: TerraformTaskV4@4
+        displayName: 'Terraform Apply'
+        inputs:
+          provider: 'azurerm'
+          command: 'apply'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+          environmentServiceNameAzureRM: 'nhk_terraform_iam'
+          commandOptions: '-auto-approve -var-file="$(ENV).tfvars"'
