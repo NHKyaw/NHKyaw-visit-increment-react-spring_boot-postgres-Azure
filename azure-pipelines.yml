@@ -190,7 +190,7 @@ jobs:
       displayName: 'Download SSH Key'
       name: sshKey
       inputs:
-        secureFile: 'nhkyaw-ssh-key.pem'              # upload your .pem file to Library → Secure Files
+        secureFile: 'nhkyaw-ssh-key'              # upload your .pem file to Library → Secure Files
 
     - script: |
         chmod 600 $(sshKey.secureFilePath)
