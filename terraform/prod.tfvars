@@ -5,7 +5,7 @@
 # public_subnet_cidr       = "10.2.1.0/24"
 # ssh_cidr                 = ["YOUR_OFFICE_IP/32"]
 # instance_type            = "t3.medium"
-cidr_env          = "10.0.3.0/24"
+cidr-env          = "10.0.3.0/24"
 environment       = "prod"
 vm_size           = "Standard_D4s_v3"
 instance_count    = 3
