@@ -218,4 +218,4 @@ jobs:
               sudo chmod +x /home/nhkyaw/docker/deploy.sh
               /home/nhkyaw/docker/deploy.sh
             "
-      displayName: 'Deploy to Azure VM'
+      displayName: 'Deploy to Azure VM....'
