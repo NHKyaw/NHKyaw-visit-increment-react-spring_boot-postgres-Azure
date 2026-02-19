@@ -141,6 +141,18 @@ jobs:
         ${{ else }}:
           value: 'dev'
 
+    variables:
+      - name: imageTag
+        ${{ if or(eq(variables['Build.SourceBranchName'], 'main'), eq(variables['Build.SourceBranchName'], 'master')) }}:
+          value: 'prod'
+        ${{ elseif eq(variables['Build.SourceBranchName'], 'uat') }}:
+          value: 'uat'
+        ${{ else }}:
+          value: 'dev'
+
+    variables:
+      DOCKER_REPO: 'nhkyaw/visit-record-app'
+
     steps:                                           
     - task: TerraformInstaller@1
       displayName: 'Install Terraform'
@@ -167,3 +179,38 @@ jobs:
         workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
         environmentServiceNameAzureRM: 'nhk_terraform_iam'
         commandOptions: '-auto-approve -var-file="$(ENV).tfvars"'
+
+    # ── Get VM IP from Terraform Output
+    - script: |
+        VM_IP=$(terraform output -raw vm_public_ip)
+        echo "##vso[task.setvariable variable=VM_IP]$VM_IP"
+      displayName: 'Get VM Public IP'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+
+    - script: |
+        mkdir -p ~/.ssh
+        echo "$(nhkyaw-ssh-key)" > ~/.ssh/vm.pem
+        chmod 600 ~/.ssh/vm.pem
+      displayName: 'Prepare SSH Key'
+
+    # ── Copy Docker Directory to VM ───────────────────────────────────────────
+    - script: |
+        scp -o StrictHostKeyChecking=no \
+            -i ~/.ssh/vm.pem \
+            -r docker ubuntu@$(VM_IP):~/
+      displayName: 'Copy Docker Directory to VM'
+      workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+
+  # ── Deploy ────────────────────────────────────────────────────────────────
+  - script: |
+      ssh -o StrictHostKeyChecking=no \
+          -i ~/.ssh/vm.pem \
+          ubuntu@$(VM_IP) "
+            set -e
+            export IMAGE_TAG=$(imageTag)
+            export DOCKER_REPO=$(DOCKER_REPO)
+            sudo chmod +x /home/ubuntu/docker/deploy.sh
+            /home/ubuntu/docker/deploy.sh
+          "
+    displayName: 'Deploy to Azure VM'
