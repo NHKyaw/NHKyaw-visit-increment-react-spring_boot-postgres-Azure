@@ -47,7 +47,7 @@ jobs:
       - script: |
           npm test -- --watchAll=false
         workingDirectory: $(System.DefaultWorkingDirectory)/frontend/
-        displayName: 'Run Frontend Tests'
+        displayName: 'Run Frontend Tests..'
 
       - script: |
           npm test -- --coverage --watchAll=false
