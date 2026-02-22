@@ -57,7 +57,7 @@ jobs:
       - task: PublishCodeCoverageResults@2
         displayName: 'Publish Coverage'
         inputs:
-          summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage'
+          summaryFileLocation: '$(System.DefaultWorkingDirectory)/frontend/coverage'
           pathToSources: '$(System.DefaultWorkingDirectory)'
 
       - script: |
